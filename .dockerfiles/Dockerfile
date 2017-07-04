@@ -8,9 +8,17 @@ WORKDIR     /srv/deploy_eb_docker
 # requirements설치
 RUN         /root/.pyenv/versions/deploy_eb_docker/bin/pip install -r .requirements/debug.txt
 
-#supervisor 파일복사
+# supervisor 파일복사
 COPY        .config/supervisor/uwsgi.conf /etc/supervisor/conf.d/
+COPY        .config/supervisor/nginx.conf /etc/supervisor/conf.d/
 
+# nginx 파일복사
+COPY        .config/nginx/nginx.conf /etc/nginx/nginx.conf
+COPY        .config/nginx/nginx-app.conf /etc/nginx/sites-available/nginx-app.conf
+RUN         rm -rf /etc/nginx/sites-enabled/default
+RUN         ln -sf /etc/nginx/sites-available/nginx-app.conf /etc/nginx/sites-enabled/nginx-app.conf
+
+# supervisord 실행
 CMD         supervisord -n
 
 # 외부 노출할 포트
@@ -32,5 +40,13 @@ EXPOSE      80 8000
 #   작성한 파일로 실행되도록 supervisor/uwsgi.conf파일을 수정
     #   /root/.pyenv/versions/deploy_eb_docker/bin/uwsgi --ini /srv/deploy_eb_docker/.config/uwsgi/uwsgi-app.ini
 
+# 4.nginx 설정파일, nginx사이트파일 (nginx.conf, nginx-app.conf)을 각각
+#   /etc/nginx/nginx.conf, /etc/nginx/sites-available/nginx-app.conf로 복사
+#   이 후 링크 작성 (/etc/nginx/sites-enabled/nginx-app.conf로 /etc/nginx/sites-available/nginx-app.conf를 연결)
+# 4-1. supervisord실행부분을 주석처리하고 docker run으로 /bin/zsh을 2개 실행 (2번째는 docker exec사용)
+#       직접 nginx와 uwsgi를 실행해서 외부에서 80번 포트로 잘 연결되는지 확인
+#       안되면 로그확인하기
+#           uwsgi: /tmp/uwsgi.log
+#           nginx: /var/log/nginx/error.log
 
 
