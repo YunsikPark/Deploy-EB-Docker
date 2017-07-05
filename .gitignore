@@ -3,6 +3,7 @@
 .idea/
 .config_secret/
 static_root/
+.static_root/
 
 # Created by https://www.gitignore.io/api/vim,macos,django,python,pycharm
 

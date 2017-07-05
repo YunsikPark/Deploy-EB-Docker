@@ -1,12 +1,12 @@
 FROM        eb_ubuntu
-MAINTAINER  archysp11@gmail.com
+MAINTAINER  dev@gmail.com
 
 # 현재경로의 모든 파일들을 컨테이너의 /srv/deploy_eb_docker폴더에 복사
 COPY        . /srv/deploy_eb_docker
 # cd /srv/deploy_eb_docker와 같은 효과
 WORKDIR     /srv/deploy_eb_docker
 # requirements설치
-RUN         /root/.pyenv/versions/deploy_eb_docker/bin/pip install -r .requirements/debug.txt
+RUN         /root/.pyenv/versions/deploy_eb_docker/bin/pip install -r .requirements/deploy.txt
 
 # supervisor 파일복사
 COPY        .config/supervisor/uwsgi.conf /etc/supervisor/conf.d/
@@ -17,6 +17,9 @@ COPY        .config/nginx/nginx.conf /etc/nginx/nginx.conf
 COPY        .config/nginx/nginx-app.conf /etc/nginx/sites-available/nginx-app.conf
 RUN         rm -rf /etc/nginx/sites-enabled/default
 RUN         ln -sf /etc/nginx/sites-available/nginx-app.conf /etc/nginx/sites-enabled/nginx-app.conf
+
+# collectstatic 실행
+RUN         /root/.pyenv/versions/deploy_eb_docker/bin/python /srv/deploy_eb_docker/django_app/manage.py collectstatic --settings=config.settings.deploy --noinput
 
 # supervisord 실행
 CMD         supervisord -n
@@ -48,5 +51,16 @@ EXPOSE      80 8000
 #       안되면 로그확인하기
 #           uwsgi: /tmp/uwsgi.log
 #           nginx: /var/log/nginx/error.log
+
+        #- 1번 터미널 창 : NGINX 실행
+        #	- `docker run --rm -it -p 9000:80 eb /bin/zsh`
+        #	- `nginx`
+        #
+        #- 2번 터미널 창: UWSGI 실행
+        #	- `docker ps` 실행되고 있는 container id 확인
+        #	- `docker exec -it <container id 4자리> /bin/zsh`
+        #	- `uwsgi --ini /srv/deploy_eb_docker/.config/uwsgi/uwsgi-app.ini`
+
+
 
 
