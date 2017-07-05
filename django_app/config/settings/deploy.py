@@ -9,6 +9,9 @@ WSGI_APPLICATION = 'config.wsgi.deploy.application'
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(ROOT_DIR, '.static_root')
 
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(ROOT_DIR, '.media')
+
 # 배포모드이기 때문에 DEBUG는 False
 DEBUG = False
 ALLOWED_HOSTS = config_secret_deploy['django']['allowed_hosts']
@@ -31,6 +34,14 @@ print('@@@ ALLOWED_HOSTS:', ALLOWED_HOSTS)
 # User를 Django admin에 등록
 
 # - 파일 업로드 관련 설정
-# MEDIA_URL, MEDIA_ROOT설정 -> debug.py, deploy.py 에 각각 다로 설정(같은 값)
+# MEDIA_URL, MEDIA_ROOT설정 -> debug.py, deploy.py 에 각각 따로 설정(같은 값)
 #   MEDIA_ROOT는 프로젝트폴더 /.media 폴더 사용
 # 이 후 img_profile필드 채웠을 때 정상적으로 파일 업로드 되는지 확인
+
+# - Nginx에서 파일 서빙을 위한 설정
+#   Dockerfile에서 supervisord부분 주석처리 -> 별도
+#   새 이미지로 run, 하나의 shell을 더 열기 위해 exec로 zsh실행
+#   각각의 shell에서 uwsgi, nginx를 실행
+#   9000번 포트에서 연결확인
+#   /static/, /media/에 alias연결
+#   설정완료했으면 Dockerfile에서 supervisord 부분 주석해제, 빌드, run 후 static 파일 정상 출력 확인
